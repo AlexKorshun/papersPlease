@@ -45,6 +45,7 @@ public class DocumentController : MonoBehaviour
     private float inspectMinVisibleHeightFraction = 0.35f;
 
     private bool isDragging;
+    private bool interactionEnabled = true;
     private Vector3 grabLocalPoint;
     private Vector3 savedGrabLocalPointFromClosedDesk;
     private Camera mainCamera;
@@ -80,6 +81,20 @@ public class DocumentController : MonoBehaviour
         ApplyRigidbodyModeForPhysicsZone(GetPhysicsZone());
         ApplyIdleZoneFromFlags();
         ApplySortingOrderForZone(currentZone);
+
+        GameFlowController.OnStateChanged += HandleGameStateChanged;
+    }
+
+    void OnDestroy()
+    {
+        GameFlowController.OnStateChanged -= HandleGameStateChanged;
+    }
+
+    private void HandleGameStateChanged(GameState prev, GameState next)
+    {
+        interactionEnabled = (next == GameState.VisitorPresent);
+        if (!interactionEnabled && isDragging)
+            OnMouseUpInternal();
     }
 
     void FixedUpdate()
@@ -97,6 +112,7 @@ public class DocumentController : MonoBehaviour
 
     void Update()
     {
+        if (!interactionEnabled) return;
         if (!closedState.activeSelf && !openedState.activeSelf) return;
 
         Collider2D currentCollider = closedState.activeSelf ? closedCollider : openedCollider;
