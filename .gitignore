@@ -29,6 +29,7 @@
 *.booproj
 *.svd
 *.pdb
+*.pdb.meta
 *.mdb
 *.opendb
 *.VC.db
