@@ -4,7 +4,7 @@ using UnityEngine;
 public class VisitorController : MonoBehaviour
 {
     [SerializeField] private PersonArchetypeSO archetype;
-    [SerializeField] private List<MonoBehaviour> documents = new(); // components implementing IDocumentInstance
+    [SerializeField] private List<MonoBehaviour> documents = new();
     [SerializeField] private VisitorProfile profile;
 
     public PersonArchetypeSO Archetype => archetype;
@@ -24,5 +24,21 @@ public class VisitorController : MonoBehaviour
     }
 
     public IReadOnlyList<MonoBehaviour> DocumentComponents => documents;
+
+    private void OnEnable()
+    {
+        GameFlowController.OnStateChanged += OnGameStateChanged;
+    }
+
+    private void OnDisable()
+    {
+        GameFlowController.OnStateChanged -= OnGameStateChanged;
+    }
+
+    private void OnGameStateChanged(GameState prev, GameState next)
+    {
+        if (next == GameState.NextVisitor)
+            Destroy(gameObject);
+    }
 }
 

@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class VisitorSpawner : MonoBehaviour
 {
+    public event Action OnDayEnded;
     [Header("Dependencies")]
     [SerializeField] private DayManager dayManager;
     [SerializeField] private DocumentPrefabRegistrySO documentPrefabs;
@@ -30,6 +32,16 @@ public class VisitorSpawner : MonoBehaviour
         running = StartCoroutine(RunDay());
     }
 
+    public void StopDay()
+    {
+        if (running != null)
+        {
+            StopCoroutine(running);
+            running = null;
+        }
+        OnDayEnded?.Invoke();
+    }
+
     private IEnumerator RunDay()
     {
         if (dayManager == null || visitorPrefab == null)
@@ -45,19 +57,27 @@ public class VisitorSpawner : MonoBehaviour
             dayManager.RollDocumentsForVisitor(archetype, i, docsBuffer);
             SpawnDocumentsForVisitor(visitor, docsBuffer);
 
+            // Ждём пока посетитель не уйдёт (уничтожится)
+            yield return new WaitUntil(() => visitor == null);
+
             if (secondsBetweenVisitors > 0f)
                 yield return new WaitForSeconds(secondsBetweenVisitors);
-            else
-                yield return null;
         }
 
         running = null;
+        OnDayEnded?.Invoke();
     }
 
     private VisitorController SpawnVisitor(PersonArchetypeSO archetype, int visitorIndex)
     {
+        VisitorController prefabToUse = (archetype != null && archetype.Prefab != null)
+            ? archetype.Prefab
+            : visitorPrefab;
+
+        if (prefabToUse == null) return null;
+
         Vector3 pos = visitorSpawnPoint != null ? visitorSpawnPoint.position : transform.position;
-        VisitorController v = Instantiate(visitorPrefab, pos, Quaternion.identity);
+        VisitorController v = Instantiate(prefabToUse, pos, Quaternion.identity);
         VisitorProfile profile = VisitorProfileGenerator.Generate(archetype, visitorIndex);
         v.Initialize(archetype, profile);
         return v;

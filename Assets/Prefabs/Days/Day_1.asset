@@ -20,3 +20,8 @@ MonoBehaviour:
     requiredDocuments:
     - documentType: {fileID: 11400000, guid: 626c52b037f005742b937042bcdb14b4, type: 2}
       forgeryChance: 0.2
+  - archetype: {fileID: 11400000, guid: 97c1ee4d6bbecd940a503368c84b26df, type: 2}
+    spawnWeight: 1
+    requiredDocuments:
+    - documentType: {fileID: 11400000, guid: 626c52b037f005742b937042bcdb14b4, type: 2}
+      forgeryChance: 0.2

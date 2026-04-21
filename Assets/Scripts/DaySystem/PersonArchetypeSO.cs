@@ -7,7 +7,11 @@ public class PersonArchetypeSO : ScriptableObject
     [SerializeField] private string id = "person_id";
     [SerializeField] private string displayName = "Person";
 
+    [Header("Visuals")]
+    [SerializeField] private VisitorController prefab;
+
     public string Id => id;
     public string DisplayName => displayName;
+    public VisitorController Prefab => prefab;
 }
 
