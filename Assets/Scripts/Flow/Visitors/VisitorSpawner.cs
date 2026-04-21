@@ -35,9 +35,7 @@ public class VisitorSpawner : MonoBehaviour
     private int sessionVisitorIndex;
 
     /// <summary>
-    /// Spawns exactly one visitor + its documents immediately (no coroutine).
-    /// Use this when GameFlowController drives the state machine (VisitorPresent / NextVisitor),
-    /// but you still want all documents to come from the same DayManager rules.
+    /// Spawns one visitor; documents appear after the visitor's enter animation (see VisitorController).
     /// </summary>
     public VisitorController SpawnVisitorForSession()
     {
@@ -48,13 +46,15 @@ public class VisitorSpawner : MonoBehaviour
 
         PersonArchetypeSO archetype = dayManager.RollArchetypeForVisitor(i);
         VisitorController visitor = SpawnVisitor(archetype, i);
+        if (visitor == null) return null;
 
         dayManager.RollDocumentsForVisitor(archetype, i, docsBuffer);
         EnsureFallbackDocuments(docsBuffer);
-        visitor.SpawnDocuments(dayManager, documentPrefabs, documentSpawnPoint, docsBuffer);
 
         bool hasForgedDoc = docsBuffer.Exists(d => d.IsForged);
         visitor.SetShouldBeAllowed(!hasForgedDoc);
+
+        visitor.BeginSpawnDocumentsAfterEnter(dayManager, documentPrefabs, documentSpawnPoint, CopyRolledDocuments(docsBuffer));
 
         return visitor;
     }
@@ -86,13 +86,16 @@ public class VisitorSpawner : MonoBehaviour
         {
             PersonArchetypeSO archetype = dayManager.RollArchetypeForVisitor(i);
             VisitorController visitor = SpawnVisitor(archetype, i);
+            if (visitor == null)
+                continue;
 
             dayManager.RollDocumentsForVisitor(archetype, i, docsBuffer);
             EnsureFallbackDocuments(docsBuffer);
-            visitor.SpawnDocuments(dayManager, documentPrefabs, documentSpawnPoint, docsBuffer);
 
             bool hasForgedDoc = docsBuffer.Exists(d => d.IsForged);
             visitor.SetShouldBeAllowed(!hasForgedDoc);
+
+            visitor.BeginSpawnDocumentsAfterEnter(dayManager, documentPrefabs, documentSpawnPoint, CopyRolledDocuments(docsBuffer));
 
             // Ждём пока посетитель не уйдёт (уничтожится)
             yield return new WaitUntil(() => visitor == null);
@@ -103,6 +106,15 @@ public class VisitorSpawner : MonoBehaviour
 
         running = null;
         OnDayEnded?.Invoke();
+    }
+
+    private static List<DayManager.RolledDocument> CopyRolledDocuments(List<DayManager.RolledDocument> src)
+    {
+        var dst = new List<DayManager.RolledDocument>(src != null ? src.Count : 0);
+        if (src == null) return dst;
+        for (int i = 0; i < src.Count; i++)
+            dst.Add(src[i]);
+        return dst;
     }
 
     private void EnsureFallbackDocuments(List<DayManager.RolledDocument> docsBuffer)
@@ -123,11 +135,31 @@ public class VisitorSpawner : MonoBehaviour
 
         if (prefabToUse == null) return null;
 
-        Vector3 pos = visitorSpawnPoint != null ? visitorSpawnPoint.position : transform.position;
-        VisitorController v = Instantiate(prefabToUse, pos, Quaternion.identity);
+        // Never Instantiate(..., parent) with a Transform that can be "persistent" (prefab asset / invalid scene) — Unity warns and drops parent.
+        VisitorController v = Instantiate(prefabToUse);
+
+        Transform spawn = visitorSpawnPoint != null ? visitorSpawnPoint : transform;
+        if (IsTransformInLoadedScene(spawn))
+        {
+            v.transform.SetParent(spawn, false);
+            v.transform.localPosition = Vector3.zero;
+            v.transform.localRotation = Quaternion.identity;
+        }
+        else
+        {
+            v.transform.SetPositionAndRotation(spawn.position, spawn.rotation);
+        }
+
         VisitorProfile profile = VisitorProfileGenerator.Generate(archetype, visitorIndex);
         v.Initialize(archetype, profile);
         return v;
+    }
+
+    private static bool IsTransformInLoadedScene(Transform t)
+    {
+        if (t == null) return false;
+        GameObject go = t.gameObject;
+        return go.scene.IsValid() && go.scene.isLoaded;
     }
 }
 
