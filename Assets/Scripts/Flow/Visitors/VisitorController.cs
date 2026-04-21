@@ -23,6 +23,11 @@ public class VisitorController : MonoBehaviour
         documents.Add(docComponent);
     }
 
+    public void SetShouldBeAllowed(bool value)
+    {
+        profile.ShouldBeAllowed = value;
+    }
+
     public IReadOnlyList<MonoBehaviour> DocumentComponents => documents;
 
     private void OnEnable()
@@ -37,6 +42,18 @@ public class VisitorController : MonoBehaviour
 
     private void OnGameStateChanged(GameState prev, GameState next)
     {
+        if (next == GameState.Decision)
+        {
+            bool playerApproved = GameFlowController.Instance.LastDecisionApproved;
+            bool correct = playerApproved == profile.ShouldBeAllowed;
+
+            if (ScoreManager.Instance != null)
+            {
+                if (correct) ScoreManager.Instance.AddScore();
+                else         ScoreManager.Instance.AddPenalty();
+            }
+        }
+
         if (next == GameState.NextVisitor)
             Destroy(gameObject);
     }

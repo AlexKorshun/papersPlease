@@ -175,6 +175,10 @@ PrefabInstance:
       value: DayManager
       objectReference: {fileID: 0}
     - target: {fileID: 7559437188021446764, guid: 6b36b88fccf0b8443b847f2b6a8f63e2, type: 3}
+      propertyPath: deterministic
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7559437188021446764, guid: 6b36b88fccf0b8443b847f2b6a8f63e2, type: 3}
       propertyPath: dayConfigs.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -451,7 +455,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6289ebefad561da45a4278384eeb2eba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nextVisitorDelay: 1.5
+  nextVisitorDelay: 2
   documentPrefab: {fileID: 3542792392216039939, guid: 2b25167b0d7098241bcb9b2b473b9d0b, type: 3}
   spawnPoint: {fileID: 4643936593703121703, guid: 0a2f062a978ce1f4b9dbc0ef5fa4cb90, type: 3}
   onEnterWaitingForVisitor:
@@ -685,6 +689,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1101902462
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1101902463}
+  - component: {fileID: 1101902464}
+  m_Layer: 0
+  m_Name: ScoreManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1101902463
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101902462}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.0511003, y: 0.011570346, z: -4.0863376}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1101902464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1101902462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c02d1c33e4b8423409b952d1b8b55c53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scorePerCorrect: 10
+  penaltyPerWrong: 5
 --- !u!114 &1235081971 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7763889569809065621, guid: 4673468a62af3494ebd1d0aa422911d1, type: 3}
@@ -743,7 +793,7 @@ MonoBehaviour:
   dayManager: {fileID: 1583247452}
   visitorSpawner: {fileID: 1235081971}
   autoStartOnAwake: 1
-  dayDuration: 10
+  dayDuration: 60
 --- !u!114 &1583247452 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7559437188021446764, guid: 6b36b88fccf0b8443b847f2b6a8f63e2, type: 3}
@@ -1018,11 +1068,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7651904445388172479, guid: 87aec0b79cde1274b81eb30312c7c110, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 4.6112
+      value: 0.7989
       objectReference: {fileID: 0}
     - target: {fileID: 7651904445388172479, guid: 87aec0b79cde1274b81eb30312c7c110, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 1.1352
+      value: 0.3153
       objectReference: {fileID: 0}
     - target: {fileID: 7651904445388172479, guid: 87aec0b79cde1274b81eb30312c7c110, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1054,11 +1104,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7651904445388172479, guid: 87aec0b79cde1274b81eb30312c7c110, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 10.0279
+      value: 11.4
       objectReference: {fileID: 0}
     - target: {fileID: 7651904445388172479, guid: 87aec0b79cde1274b81eb30312c7c110, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.1619
+      value: -0.36
       objectReference: {fileID: 0}
     - target: {fileID: 7651904445388172479, guid: 87aec0b79cde1274b81eb30312c7c110, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1407,3 +1457,4 @@ SceneRoots:
   - {fileID: 1350324877}
   - {fileID: 155165468}
   - {fileID: 159291676}
+  - {fileID: 1101902463}

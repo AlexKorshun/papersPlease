@@ -8,6 +8,7 @@ public struct VisitorProfile
     public string FullName;
     public string Nationality;
     public Sprite Photo;
+    public bool ShouldBeAllowed;
 }
 
 public static class VisitorProfileGenerator

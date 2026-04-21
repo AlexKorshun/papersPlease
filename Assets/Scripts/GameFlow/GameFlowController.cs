@@ -25,6 +25,7 @@ public class GameFlowController : MonoBehaviour
     public static event Action<GameState, GameState> OnStateChanged;
 
     public GameState CurrentState { get; private set; }
+    public bool LastDecisionApproved { get; private set; }
 
     private float stateTimer;
     private bool decisionApproved;
@@ -55,6 +56,7 @@ public class GameFlowController : MonoBehaviour
     {
         if (CurrentState != GameState.VisitorPresent) return;
         decisionApproved = approved;
+        LastDecisionApproved = approved;
         TransitionTo(GameState.Decision);
     }
 

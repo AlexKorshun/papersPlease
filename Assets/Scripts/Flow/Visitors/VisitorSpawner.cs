@@ -57,6 +57,9 @@ public class VisitorSpawner : MonoBehaviour
             dayManager.RollDocumentsForVisitor(archetype, i, docsBuffer);
             SpawnDocumentsForVisitor(visitor, docsBuffer);
 
+            bool hasForgedDoc = docsBuffer.Exists(d => d.IsForged);
+            visitor.SetShouldBeAllowed(!hasForgedDoc);
+
             // Ждём пока посетитель не уйдёт (уничтожится)
             yield return new WaitUntil(() => visitor == null);
 

@@ -2,13 +2,13 @@
 - Project name: papersPlease
 - Unity version: Unity 2022.3.62f3
 - Active scene:
-  - Name: GameScene
+  - Name: EndOfDay
   - Tags:
     - Untagged, Respawn, Finish, EditorOnly, MainCamera, Player, GameController
   - Layers:
     - Default, TransparentFX, Ignore Raycast, Document, Water, UI
 - Active game object:
-  - Name: DayManager
+  - Name: UI
   - Tag: Untagged
-  - Layer: Default
+  - Layer: UI
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
