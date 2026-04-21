@@ -2,7 +2,7 @@
 - Project name: AetherGate_GDD
 - Unity version: Unity 2022.3.62f3
 - Active game object:
-  - Name: Document
+  - Name: person2
   - Tag: Untagged
-  - Layer: Document
+  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

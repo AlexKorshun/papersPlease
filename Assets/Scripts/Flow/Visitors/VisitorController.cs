@@ -5,12 +5,15 @@ public class VisitorController : MonoBehaviour
 {
     [SerializeField] private PersonArchetypeSO archetype;
     [SerializeField] private List<MonoBehaviour> documents = new(); // components implementing IDocumentInstance
+    [SerializeField] private VisitorProfile profile;
 
     public PersonArchetypeSO Archetype => archetype;
+    public VisitorProfile Profile => profile;
 
-    public void Initialize(PersonArchetypeSO personArchetype)
+    public void Initialize(PersonArchetypeSO personArchetype, VisitorProfile visitorProfile)
     {
         archetype = personArchetype;
+        profile = visitorProfile;
         documents.Clear();
     }
 

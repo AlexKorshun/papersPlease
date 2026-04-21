@@ -15,16 +15,8 @@ MonoBehaviour:
   dayNumber: 1
   seed: 0
   archetypes:
-  - archetype: {fileID: 0}
-    spawnWeight: 0
+  - archetype: {fileID: 11400000, guid: 6e0e8536033dd5e4196b0505508ca1d1, type: 2}
+    spawnWeight: 1
     requiredDocuments:
-    - documentType: {fileID: 0}
-      forgeryChance: 0
-    - documentType: {fileID: 0}
-      forgeryChance: 0
-  - archetype: {fileID: 0}
-    spawnWeight: 0
-    requiredDocuments: []
-  - archetype: {fileID: 0}
-    spawnWeight: 0
-    requiredDocuments: []
+    - documentType: {fileID: 11400000, guid: 626c52b037f005742b937042bcdb14b4, type: 2}
+      forgeryChance: 0.2

@@ -40,7 +40,7 @@ public class VisitorSpawner : MonoBehaviour
         for (int i = 0; i < visitorsPerDay; i++)
         {
             PersonArchetypeSO archetype = dayManager.RollArchetypeForVisitor(i);
-            VisitorController visitor = SpawnVisitor(archetype);
+            VisitorController visitor = SpawnVisitor(archetype, i);
 
             dayManager.RollDocumentsForVisitor(archetype, i, docsBuffer);
             SpawnDocumentsForVisitor(visitor, docsBuffer);
@@ -54,11 +54,12 @@ public class VisitorSpawner : MonoBehaviour
         running = null;
     }
 
-    private VisitorController SpawnVisitor(PersonArchetypeSO archetype)
+    private VisitorController SpawnVisitor(PersonArchetypeSO archetype, int visitorIndex)
     {
         Vector3 pos = visitorSpawnPoint != null ? visitorSpawnPoint.position : transform.position;
         VisitorController v = Instantiate(visitorPrefab, pos, Quaternion.identity);
-        v.Initialize(archetype);
+        VisitorProfile profile = VisitorProfileGenerator.Generate(archetype, visitorIndex);
+        v.Initialize(archetype, profile);
         return v;
     }
 
@@ -79,46 +80,12 @@ public class VisitorSpawner : MonoBehaviour
             // If it is a passport document, pass forged flag (extend with more doc types later).
             PassportDocument passport = go.GetComponent<PassportDocument>();
             if (passport != null)
-                passport.Initialize(type, docs[i].IsForged, GeneratePassportData(visitor, i, docs[i].IsForged));
+                passport.Initialize(type, docs[i].IsForged, VisitorProfileGenerator.BuildPassportData(visitor.Profile, i, docs[i].IsForged));
 
             MonoBehaviour mb = go.GetComponent<MonoBehaviour>();
             if (mb != null)
                 visitor.AddDocumentComponent(mb);
         }
-    }
-
-    private static PassportData GeneratePassportData(VisitorController visitor, int docIndex, bool forged)
-    {
-        // Minimal placeholder generator so you can see fields populate.
-        // Later we'll swap this to a proper data generator + forgery rules per-day.
-        string[] first = { "Igor", "Nina", "Viktor", "Alina", "Sergey", "Mila" };
-        string[] last = { "Volkov", "Petrova", "Sokolov", "Morozov", "Kuznetsova", "Smirnov" };
-        string[] nat = { "Arstotzka", "Kolechia", "Impor", "Antegria" };
-
-        int seed = (visitor != null && visitor.Archetype != null ? visitor.Archetype.Id.GetHashCode() : 12345);
-        int x = seed ^ (docIndex * 1103515245);
-        unchecked { x = x * 1664525 + 1013904223; }
-
-        string fullName = $"{first[Mathf.Abs(x) % first.Length]} {last[Mathf.Abs(x / 7) % last.Length]}";
-        string passportNumber = $"AG-{Mathf.Abs(x / 13) % 900000 + 100000}";
-        string nationality = nat[Mathf.Abs(x / 29) % nat.Length];
-        string expiry = $"19{(Mathf.Abs(x / 31) % 10) + 80}-0{(Mathf.Abs(x / 37) % 9) + 1}-1{Mathf.Abs(x / 41) % 9}";
-
-        if (forged)
-        {
-            // Simple forgery: mismatch nationality or number.
-            nationality = nat[(Mathf.Abs(x / 3) + 1) % nat.Length];
-            passportNumber = $"AG-{Mathf.Abs(x / 5) % 900000 + 100000}";
-        }
-
-        return new PassportData
-        {
-            FullName = fullName,
-            PassportNumber = passportNumber,
-            Nationality = nationality,
-            ExpiryDate = expiry,
-            Photo = null,
-        };
     }
 }
 
