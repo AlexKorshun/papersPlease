@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4a10c195c7b15d42899cbf359122dd8, type: 3}
-  m_Name: DocType_1_passport
+  m_Name: DocType_2_EntryPermit
   m_EditorClassIdentifier: 
-  id: doc_id
-  displayName: Passport
+  id: 2
+  displayName: Pass

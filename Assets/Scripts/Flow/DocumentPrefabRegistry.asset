@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec0deb20cee903345b78ba8ba3325ad7, type: 3}
   m_Name: DocumentPrefabRegistry
   m_EditorClassIdentifier: 
-  entries: []
+  entries:
+  - documentType: {fileID: 11400000, guid: 626c52b037f005742b937042bcdb14b4, type: 2}
+    prefab: {fileID: 3542792392216039939, guid: 2b25167b0d7098241bcb9b2b473b9d0b, type: 3}
+  - documentType: {fileID: 11400000, guid: 471094e3344ca064fb43500d03991959, type: 2}
+    prefab: {fileID: 3542792392216039939, guid: bedb979bb7c82444f83d963494a85188, type: 3}

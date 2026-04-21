@@ -12,8 +12,14 @@ public class GameFlowController : MonoBehaviour
     [SerializeField] private float nextVisitorDelay = 1.5f;
 
     [Header("Documents")]
+    [Tooltip("If true, instantiates documentPrefab when entering VisitorPresent. Turn off when documents come from VisitorSpawner (otherwise you get a second passport and stamp/delivery checks use the wrong instance).")]
+    [SerializeField] private bool spawnDocumentPrefabOnVisitorPresent = true;
     [SerializeField] private GameObject documentPrefab;
     [SerializeField] private Transform spawnPoint;
+
+    [Header("Visitor spawning (recommended)")]
+    [Tooltip("If set, GameFlowController will ask this spawner to create the visitor + documents for the session.")]
+    [SerializeField] private VisitorSpawner visitorSpawner;
 
     [Header("Inspector Hooks")]
     public UnityEvent onEnterWaitingForVisitor;
@@ -31,12 +37,24 @@ public class GameFlowController : MonoBehaviour
     private bool decisionApproved;
     private readonly List<DocumentController> activeDocuments = new();
     private readonly List<DocumentDeliverable> deliverables = new();
+    private VisitorController activeVisitor;
+
+    void Awake()
+    {
+        // Must run before any Start(): VisitorSpawner (via DayFlowController) can spawn + register
+        // documents in its Start, and registration skips when Instance is still null.
+        if (Instance == null) Instance = this;
+    }
 
     void Start()
     {
-        if (Instance == null) Instance = this;
         TransitionTo(GameState.WaitingForVisitor);
     }
+
+    /// <summary>
+    /// Documents spawned before flow exists, or duplicate prefab spawns, may not be in this list.
+    /// </summary>
+    public bool IsSessionDeliverable(DocumentDeliverable d) => d != null && deliverables.Contains(d);
 
     void OnDestroy()
     {
@@ -81,7 +99,7 @@ public class GameFlowController : MonoBehaviour
                 break;
 
             case GameState.VisitorPresent:
-                SpawnDocuments();
+                BeginVisitorSession();
                 onEnterVisitorPresent.Invoke();
                 break;
 
@@ -104,18 +122,47 @@ public class GameFlowController : MonoBehaviour
             DestroyActiveDocuments();
     }
 
-    private void SpawnDocuments()
+    /// <summary>
+    /// Call after spawning visitor documents elsewhere (e.g. VisitorSpawner) so stamp gates and delivery completion use the same instances.
+    /// </summary>
+    public void RegisterVisitorSessionDocument(GameObject doc)
     {
-        if (documentPrefab == null || spawnPoint == null) return;
+        if (doc == null) return;
 
-        GameObject doc = Instantiate(documentPrefab, spawnPoint.position, Quaternion.identity);
         DocumentController controller = doc.GetComponent<DocumentController>();
-        if (controller != null)
+        if (controller != null && !activeDocuments.Contains(controller))
             activeDocuments.Add(controller);
 
         DocumentDeliverable deliverable = doc.GetComponent<DocumentDeliverable>();
-        if (deliverable != null)
+        if (deliverable != null && !deliverables.Contains(deliverable))
             deliverables.Add(deliverable);
+    }
+
+    private void SpawnDocuments()
+    {
+        if (!spawnDocumentPrefabOnVisitorPresent) return;
+        if (documentPrefab == null || spawnPoint == null) return;
+
+        GameObject doc = Instantiate(documentPrefab, spawnPoint.position, Quaternion.identity);
+        RegisterVisitorSessionDocument(doc);
+    }
+
+    private void BeginVisitorSession()
+    {
+        // New session: reset tracking (documents will re-register as they spawn).
+        activeDocuments.Clear();
+        deliverables.Clear();
+
+        if (visitorSpawner != null)
+        {
+            // Preferred: visitor + documents come from VisitorSpawner/DayManager rules.
+            activeVisitor = visitorSpawner.SpawnVisitorForSession();
+            return;
+        }
+
+        // Fallback: legacy single-document spawn (useful for quick prototyping).
+        activeVisitor = null;
+        SpawnDocuments();
     }
 
     private void DestroyActiveDocuments()
@@ -133,6 +180,7 @@ public class GameFlowController : MonoBehaviour
     {
         if (delivered == null) return;
         if (CurrentState != GameState.VisitorPresent) return;
+        if (!deliverables.Contains(delivered)) return;
 
         // Wait until all spawned deliverables are delivered.
         for (int i = 0; i < deliverables.Count; i++)
@@ -152,6 +200,7 @@ public class GameFlowController : MonoBehaviour
     public bool AreAllRequiredStampsPresent()
     {
         if (CurrentState != GameState.VisitorPresent) return false;
+        if (deliverables.Count == 0) return false;
 
         for (int i = 0; i < deliverables.Count; i++)
         {

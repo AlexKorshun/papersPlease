@@ -12,6 +12,12 @@ public class DayManager : MonoBehaviour
     [Min(1)]
     [SerializeField] private int currentDayNumber = 1;
 
+    [Header("Calendar")]
+    [Tooltip("Base date for day 1 (dd.MM.yyyy). Default: 21.10.2077")]
+    [SerializeField] private int baseDay = 21;
+    [SerializeField] private int baseMonth = 10;
+    [SerializeField] private int baseYear = 2077;
+
     [SerializeField] private List<DayConfigSO> dayConfigs = new();
 
     [Header("Randomness")]
@@ -22,6 +28,17 @@ public class DayManager : MonoBehaviour
 
     public int CurrentDayNumber => currentDayNumber;
     public DayConfigSO ActiveConfig => activeConfig;
+
+    public DateTime CurrentDate
+    {
+        get
+        {
+            DateTime baseDate = new DateTime(baseYear, baseMonth, baseDay);
+            return baseDate.AddDays(Mathf.Max(0, currentDayNumber - 1));
+        }
+    }
+
+    public string CurrentDateString => CurrentDate.ToString("dd.MM.yyyy");
 
     private void Awake()
     {

@@ -63,6 +63,8 @@ public class PassportDocument : MonoBehaviour, IStampable
         mark.Configure(d == StampDecision.Approved);
 
         currentStamp = mark;
+
+        DocumentController.RebuildAllDocumentStacks();
     }
 }
 

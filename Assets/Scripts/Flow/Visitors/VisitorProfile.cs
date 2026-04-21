@@ -5,8 +5,10 @@ using UnityEngine;
 public struct VisitorProfile
 {
     public string PersonId;
-    public string FullName;
-    public string Nationality;
+    public string FirstName;
+    public string LastName;
+    public string BirthDate;
+    public string BirthPlace;
     public Sprite Photo;
     public bool ShouldBeAllowed;
 }
@@ -15,7 +17,7 @@ public static class VisitorProfileGenerator
 {
     private static readonly string[] First = { "Igor", "Nina", "Viktor", "Alina", "Sergey", "Mila" };
     private static readonly string[] Last = { "Volkov", "Petrova", "Sokolov", "Morozov", "Kuznetsova", "Smirnov" };
-    private static readonly string[] Nat = { "Arstotzka", "Kolechia", "Impor", "Antegria" };
+    private static readonly string[] BirthPlaces = { "Orvech Vonor", "Paradizna", "East Grestin", "Vedor", "Lendiforma" };
 
     public static VisitorProfile Generate(PersonArchetypeSO archetype, int visitorIndex)
     {
@@ -24,15 +26,19 @@ public static class VisitorProfileGenerator
 
         string first = First[Mathf.Abs(x) % First.Length];
         string last = Last[Mathf.Abs(x / 7) % Last.Length];
-        string nationality = Nat[Mathf.Abs(x / 29) % Nat.Length];
+        string birthPlace = BirthPlaces[Mathf.Abs(x / 11) % BirthPlaces.Length];
+        string birthDate = $"19{(Mathf.Abs(x / 17) % 10) + 70}-0{(Mathf.Abs(x / 19) % 9) + 1}-1{Mathf.Abs(x / 23) % 9}";
         string personId = $"P-{Mathf.Abs(x) % 900000 + 100000}";
 
         return new VisitorProfile
         {
             PersonId = personId,
-            FullName = $"{first} {last}",
-            Nationality = nationality,
+            FirstName = first,
+            LastName = last,
+            BirthDate = birthDate,
+            BirthPlace = birthPlace,
             Photo = null,
+            ShouldBeAllowed = true,
         };
     }
 
@@ -40,15 +46,12 @@ public static class VisitorProfileGenerator
     {
         int x = Mix(profile.PersonId.GetHashCode() ^ (visitorIndex * 1664525));
 
-        string passportNumber = $"AG-{Mathf.Abs(x / 13) % 900000 + 100000}";
-        string expiry = $"19{(Mathf.Abs(x / 31) % 10) + 80}-0{(Mathf.Abs(x / 37) % 9) + 1}-1{Mathf.Abs(x / 41) % 9}";
-
         PassportData d = new PassportData
         {
-            FullName = profile.FullName,
-            Nationality = profile.Nationality,
-            PassportNumber = passportNumber,
-            ExpiryDate = expiry,
+            FirstName = profile.FirstName,
+            LastName = profile.LastName,
+            BirthDate = profile.BirthDate,
+            BirthPlace = profile.BirthPlace,
             Photo = profile.Photo,
         };
 
@@ -58,12 +61,35 @@ public static class VisitorProfileGenerator
             // Later we can expand to weighted forgery types per-day.
             int mode = Mathf.Abs(x) % 2;
             if (mode == 0)
-                d.FullName = d.FullName + " Jr";
+                d.LastName = d.LastName + " Jr";
             else
-                d.Nationality = Nat[(Array.IndexOf(Nat, d.Nationality) + 1) % Nat.Length];
+                d.BirthPlace = BirthPlaces[(Array.IndexOf(BirthPlaces, d.BirthPlace) + 1) % BirthPlaces.Length];
         }
 
         return d;
+    }
+
+    public static PermitData BuildPermitData(in VisitorProfile profile, string todayDate, int visitorIndex, bool forged)
+    {
+        int x = Mix(profile.PersonId.GetHashCode() ^ (visitorIndex * 1013904223));
+
+        string valid = todayDate;
+        if (forged)
+        {
+            int delta = (Mathf.Abs(x) % 2 == 0) ? -1 : 1;
+            if (System.DateTime.TryParseExact(todayDate, "dd.MM.yyyy", null,
+                    System.Globalization.DateTimeStyles.None, out var dt))
+            {
+                valid = dt.AddDays(delta).ToString("dd.MM.yyyy");
+            }
+        }
+
+        return new PermitData
+        {
+            FirstName = profile.FirstName,
+            LastName = profile.LastName,
+            ValidDate = valid,
+        };
     }
 
     private static int Mix(int x)

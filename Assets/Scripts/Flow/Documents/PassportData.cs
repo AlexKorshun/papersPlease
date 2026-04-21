@@ -4,10 +4,10 @@ using UnityEngine;
 [Serializable]
 public struct PassportData
 {
-    public string FullName;
-    public string PassportNumber;
-    public string Nationality;
-    public string ExpiryDate; // keep as string for now (easy to format & localize)
+    public string FirstName;
+    public string LastName;
+    public string BirthDate;
+    public string BirthPlace;
     public Sprite Photo;
 }
 

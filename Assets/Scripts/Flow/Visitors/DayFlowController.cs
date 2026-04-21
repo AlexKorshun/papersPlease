@@ -42,7 +42,9 @@ public class DayFlowController : MonoBehaviour
 
     public void StartDay()
     {
-        if (dayManager == null || visitorSpawner == null) return;
+        // DayFlowController is only responsible for the timer + telling the spawner to start.
+        // DayManager is used inside VisitorSpawner, so we should not block start here if it's not assigned.
+        if (visitorSpawner == null) return;
         timeLeft = dayDuration;
         dayActive = true;
         visitorSpawner.StartDay();

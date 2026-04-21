@@ -63,6 +63,9 @@ public class DocumentDeliverable : MonoBehaviour
         if (flow == null || flow.CurrentState != GameState.VisitorPresent)
             return;
 
+        if (!flow.IsSessionDeliverable(this))
+            return;
+
         // Global gate: do not allow handing over anything until all required documents are stamped.
         if (!flow.AreAllRequiredStampsPresent())
             return;
@@ -89,6 +92,12 @@ public class DocumentDeliverable : MonoBehaviour
         GameFlowController flow = GameFlowController.Instance;
         bool visitorPresent = flow != null && flow.CurrentState == GameState.VisitorPresent;
         if (!visitorPresent)
+        {
+            if (hintVisible) SetHintVisible(false);
+            return;
+        }
+
+        if (flow != null && !flow.IsSessionDeliverable(this))
         {
             if (hintVisible) SetHintVisible(false);
             return;

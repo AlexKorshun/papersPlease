@@ -1,19 +1,18 @@
-using System;
-using System.Reflection;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
 /// Binds PassportData to visuals on the passport prefab.
-/// Works with Unity UI Text / Image, legacy TextMesh, and TextMeshPro (via reflection).
+/// Works with TMP_Text plus optional UI Image / SpriteRenderer for the photo.
 /// </summary>
 public class PassportView : MonoBehaviour
 {
-    [Header("Text targets (UI Text, TextMesh, TMP_Text)")]
-    [SerializeField] private Component fullNameText;
-    [SerializeField] private Component passportNumberText;
-    [SerializeField] private Component nationalityText;
-    [SerializeField] private Component expiryDateText;
+    [Header("Text targets (TMP_Text)")]
+    [SerializeField] private TMP_Text firstNameText;
+    [SerializeField] private TMP_Text lastNameText;
+    [SerializeField] private TMP_Text birthDateText;
+    [SerializeField] private TMP_Text birthPlaceText;
 
     [Header("Photo targets (UI Image or SpriteRenderer)")]
     [SerializeField] private Image photoImage;
@@ -24,10 +23,10 @@ public class PassportView : MonoBehaviour
 
     public void Apply(in PassportData data, bool isForged)
     {
-        SetText(fullNameText, data.FullName);
-        SetText(passportNumberText, data.PassportNumber);
-        SetText(nationalityText, data.Nationality);
-        SetText(expiryDateText, data.ExpiryDate);
+        if (firstNameText != null) firstNameText.text = data.FirstName ?? string.Empty;
+        if (lastNameText != null) lastNameText.text = data.LastName ?? string.Empty;
+        if (birthDateText != null) birthDateText.text = data.BirthDate ?? string.Empty;
+        if (birthPlaceText != null) birthPlaceText.text = data.BirthPlace ?? string.Empty;
 
         if (photoImage != null)
             photoImage.sprite = data.Photo;
@@ -36,34 +35,6 @@ public class PassportView : MonoBehaviour
 
         if (forgedIndicator != null)
             forgedIndicator.SetActive(isForged);
-    }
-
-    private static void SetText(Component target, string value)
-    {
-        if (target == null) return;
-        value ??= string.Empty;
-
-        // UnityEngine.UI.Text
-        if (target is Text uiText)
-        {
-            uiText.text = value;
-            return;
-        }
-
-        // Legacy TextMesh
-        if (target is TextMesh textMesh)
-        {
-            textMesh.text = value;
-            return;
-        }
-
-        // TextMeshPro (TMP_Text) via reflection: property "text"
-        Type t = target.GetType();
-        PropertyInfo p = t.GetProperty("text", BindingFlags.Instance | BindingFlags.Public);
-        if (p != null && p.PropertyType == typeof(string) && p.CanWrite)
-        {
-            p.SetValue(target, value);
-        }
     }
 }
 

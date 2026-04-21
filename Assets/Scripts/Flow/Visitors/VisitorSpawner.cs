@@ -24,7 +24,40 @@ public class VisitorSpawner : MonoBehaviour
     [Min(0f)]
     [SerializeField] private float secondsBetweenVisitors = 2f;
 
+    [Header("Fallback (safety)")]
+    [Tooltip("If DayConfig has no RequiredDocuments for the rolled archetype, we can still spawn at least one document.")]
+    [SerializeField] private bool ensureAtLeastOneDocument = true;
+
+    [Tooltip("Used when ensureAtLeastOneDocument is enabled and the day rules roll 0 documents. Typically set this to Passport document type.")]
+    [SerializeField] private DocumentTypeSO fallbackDocumentType;
+
     private Coroutine running;
+    private int sessionVisitorIndex;
+
+    /// <summary>
+    /// Spawns exactly one visitor + its documents immediately (no coroutine).
+    /// Use this when GameFlowController drives the state machine (VisitorPresent / NextVisitor),
+    /// but you still want all documents to come from the same DayManager rules.
+    /// </summary>
+    public VisitorController SpawnVisitorForSession()
+    {
+        if (dayManager == null || visitorPrefab == null) return null;
+
+        var docsBuffer = new List<DayManager.RolledDocument>(8);
+        int i = sessionVisitorIndex++;
+
+        PersonArchetypeSO archetype = dayManager.RollArchetypeForVisitor(i);
+        VisitorController visitor = SpawnVisitor(archetype, i);
+
+        dayManager.RollDocumentsForVisitor(archetype, i, docsBuffer);
+        EnsureFallbackDocuments(docsBuffer);
+        visitor.SpawnDocuments(dayManager, documentPrefabs, documentSpawnPoint, docsBuffer);
+
+        bool hasForgedDoc = docsBuffer.Exists(d => d.IsForged);
+        visitor.SetShouldBeAllowed(!hasForgedDoc);
+
+        return visitor;
+    }
 
     public void StartDay()
     {
@@ -55,7 +88,8 @@ public class VisitorSpawner : MonoBehaviour
             VisitorController visitor = SpawnVisitor(archetype, i);
 
             dayManager.RollDocumentsForVisitor(archetype, i, docsBuffer);
-            SpawnDocumentsForVisitor(visitor, docsBuffer);
+            EnsureFallbackDocuments(docsBuffer);
+            visitor.SpawnDocuments(dayManager, documentPrefabs, documentSpawnPoint, docsBuffer);
 
             bool hasForgedDoc = docsBuffer.Exists(d => d.IsForged);
             visitor.SetShouldBeAllowed(!hasForgedDoc);
@@ -71,6 +105,16 @@ public class VisitorSpawner : MonoBehaviour
         OnDayEnded?.Invoke();
     }
 
+    private void EnsureFallbackDocuments(List<DayManager.RolledDocument> docsBuffer)
+    {
+        if (!ensureAtLeastOneDocument) return;
+        if (docsBuffer == null) return;
+        if (docsBuffer.Count > 0) return;
+        if (fallbackDocumentType == null) return;
+
+        docsBuffer.Add(new DayManager.RolledDocument(fallbackDocumentType, forged: false));
+    }
+
     private VisitorController SpawnVisitor(PersonArchetypeSO archetype, int visitorIndex)
     {
         VisitorController prefabToUse = (archetype != null && archetype.Prefab != null)
@@ -84,31 +128,6 @@ public class VisitorSpawner : MonoBehaviour
         VisitorProfile profile = VisitorProfileGenerator.Generate(archetype, visitorIndex);
         v.Initialize(archetype, profile);
         return v;
-    }
-
-    private void SpawnDocumentsForVisitor(VisitorController visitor, List<DayManager.RolledDocument> docs)
-    {
-        if (visitor == null || docs == null) return;
-
-        Vector3 basePos = documentSpawnPoint != null ? documentSpawnPoint.position : transform.position;
-        for (int i = 0; i < docs.Count; i++)
-        {
-            DocumentTypeSO type = docs[i].DocumentType;
-            GameObject prefab = documentPrefabs != null ? documentPrefabs.GetPrefab(type) : null;
-            if (prefab == null) continue;
-
-            Vector3 p = basePos + new Vector3(0.12f * i, -0.06f * i, 0f);
-            GameObject go = Instantiate(prefab, p, Quaternion.identity);
-
-            // If it is a passport document, pass forged flag (extend with more doc types later).
-            PassportDocument passport = go.GetComponent<PassportDocument>();
-            if (passport != null)
-                passport.Initialize(type, docs[i].IsForged, VisitorProfileGenerator.BuildPassportData(visitor.Profile, i, docs[i].IsForged));
-
-            MonoBehaviour mb = go.GetComponent<MonoBehaviour>();
-            if (mb != null)
-                visitor.AddDocumentComponent(mb);
-        }
     }
 }
 

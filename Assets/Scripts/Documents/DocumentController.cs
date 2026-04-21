@@ -1,7 +1,19 @@
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
- 
+
 public class DocumentController : MonoBehaviour
 {
+    // Global: prevent grabbing multiple overlapping documents in one click.
+    private static DocumentController activeDragOwner;
+    private static readonly Collider2D[] overlapPointHits = new Collider2D[32];
+
+    private static readonly List<DocumentController> s_instances = new(16);
+    private static ulong s_nextTouchOrder = 1;
+
+    /// <summary>Higher = interacted with more recently; used to pick top document and assign sorting bands.</summary>
+    private ulong touchOrder;
+
     [Header("States")]
     public GameObject closedState;
     public GameObject openedState;
@@ -21,10 +33,32 @@ public class DocumentController : MonoBehaviour
 
     [Header("Rendering")]
     [SerializeField]
-    private int sortingOrderInspectDesk = 5;
+    private int sortingOrderInspectDesk = 5; // legacy (kept for compatibility; overridden by dynamic orders below)
 
     [SerializeField]
-    private int sortingOrderClosedDesk = 100;
+    private int sortingOrderClosedDesk = 100; // legacy (kept for compatibility; overridden by dynamic orders below)
+
+    [Header("Dynamic order-in-layer (stacking)")]
+    [Tooltip("If enabled: when you grab a document, it moves to the global front (highest sorting order).")]
+    [SerializeField] private bool raiseToFrontOnGrab = true;
+
+    [Tooltip("View sprites use base+stride. TMP is expected at base+1, so stride should be >= 2.")]
+    [SerializeField]
+    [Min(2)]
+    private int documentOrderStride = 2;
+
+    [Tooltip("If enabled, sets world-space TMP renderers to base+1 so they stay between the document base and view sprites.")]
+    [SerializeField]
+    private bool syncWorldTmpSortingOrder = true;
+
+    [Header("Sorting bands (per desk zone)")]
+    [Tooltip("Inspect desk: base sorting order min..max (inclusive). TMP uses base+1, view sprites base+stride.")]
+    [SerializeField] private int openDeskSortingMin = 1;
+    [SerializeField] private int openDeskSortingMax = 14;
+
+    [Tooltip("Closed desk: base sorting order min..max (inclusive). TMP uses base+1, view sprites base+stride.")]
+    [SerializeField] private int closedDeskSortingMin = 16;
+    [SerializeField] private int closedDeskSortingMax = 31;
 
     [Header("Screen bounds")]
     [SerializeField]
@@ -61,6 +95,18 @@ public class DocumentController : MonoBehaviour
     private bool physicsOverInspectDesk;
     private TableTrigger.TableZone currentZone = TableTrigger.TableZone.ClosedDesk;
     private SpriteRenderer[] cachedSpriteRenderers;
+    private int currentBaseSortingOrder;
+
+    private void OnEnable()
+    {
+        if (!s_instances.Contains(this))
+            s_instances.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        s_instances.Remove(this);
+    }
 
     void Start()
     {
@@ -80,7 +126,8 @@ public class DocumentController : MonoBehaviour
         RefreshDeskZoneFlagsFromPhysics();
         ApplyRigidbodyModeForPhysicsZone(GetPhysicsZone());
         ApplyIdleZoneFromFlags();
-        ApplySortingOrderForZone(currentZone);
+        touchOrder = ++s_nextTouchOrder;
+        RebuildAllStacks();
 
         //GameFlowController.OnStateChanged += HandleGameStateChanged;
     }
@@ -125,7 +172,11 @@ public class DocumentController : MonoBehaviour
             mouseWorldPos.z = 0f;
 
             if (currentCollider != null && currentCollider.OverlapPoint(mouseWorldPos))
-                OnMouseDownInternal(mouseWorldPos);
+            {
+                // Only the topmost document under cursor can start dragging.
+                if (CanStartDragFromPoint(mouseWorldPos))
+                    OnMouseDownInternal(mouseWorldPos);
+            }
         }
 
         RefreshDeskZoneFlagsFromPhysics();
@@ -142,6 +193,7 @@ public class DocumentController : MonoBehaviour
 
     private void OnMouseDownInternal(Vector3 mouseWorldPos)
     {
+        activeDragOwner = this;
         isDragging = true;
         SetRigidbodyForDrag(true);
 
@@ -153,6 +205,10 @@ public class DocumentController : MonoBehaviour
             SetState(isOpened: true);
         else
             SetState(isOpened: false);
+
+        if (raiseToFrontOnGrab)
+            touchOrder = ++s_nextTouchOrder;
+        RebuildAllStacks();
     }
 
     private void OnMouseDragInternal()
@@ -169,6 +225,7 @@ public class DocumentController : MonoBehaviour
         bool dropInspect = isOverInspectDesk;
 
         isDragging = false;
+        if (activeDragOwner == this) activeDragOwner = null;
         RefreshDeskZoneFlagsFromPhysics(useCursorProbe: false);
 
         SetRigidbodyForDrag(false);
@@ -177,7 +234,7 @@ public class DocumentController : MonoBehaviour
         {
             SetState(isOpened: false);
             currentZone = TableTrigger.TableZone.ClosedDesk;
-            ApplySortingOrderForZone(currentZone);
+            RebuildAllStacks();
             ClampDocumentToScreenBounds();
             return;
         }
@@ -186,13 +243,13 @@ public class DocumentController : MonoBehaviour
         {
             currentZone = TableTrigger.TableZone.InspectDesk;
             SetState(isOpened: true);
-            ApplySortingOrderForZone(currentZone);
+            RebuildAllStacks();
         }
         else
         {
             currentZone = TableTrigger.TableZone.ClosedDesk;
             SetState(isOpened: false);
-            ApplySortingOrderForZone(currentZone);
+            RebuildAllStacks();
         }
 
         ClampDocumentToScreenBounds();
@@ -219,7 +276,7 @@ public class DocumentController : MonoBehaviour
         SetState(open);
         if (open)
             SnapInspectSurfaceYIfConfigured();
-        ApplySortingOrderForZone(currentZone);
+        RebuildAllStacks();
     }
 
     private TableTrigger.TableZone GetTargetZoneFromFlags()
@@ -249,7 +306,7 @@ public class DocumentController : MonoBehaviour
             SnapInspectSurfaceYIfConfigured();
             SetState(isOpened: true);
             currentZone = TableTrigger.TableZone.InspectDesk;
-            ApplySortingOrderForZone(currentZone);
+            RebuildAllStacks();
             return;
         }
 
@@ -259,7 +316,7 @@ public class DocumentController : MonoBehaviour
             AlignLocalGrabPointToCursor(mouseWorldPos);
             SetState(isOpened: false);
             currentZone = TableTrigger.TableZone.ClosedDesk;
-            ApplySortingOrderForZone(currentZone);
+            RebuildAllStacks();
         }
     }
 
@@ -369,13 +426,157 @@ public class DocumentController : MonoBehaviour
 
     private void ApplySortingOrderForZone(TableTrigger.TableZone zone)
     {
+        // Include dynamically spawned children (e.g. StampMark) — stale cache would leave stamps at default order.
+        cachedSpriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
         if (cachedSpriteRenderers == null || cachedSpriteRenderers.Length == 0) return;
 
-        int order = zone == TableTrigger.TableZone.InspectDesk ? sortingOrderInspectDesk : sortingOrderClosedDesk;
+        int baseOrder = currentBaseSortingOrder;
+        int stride = Mathf.Max(2, documentOrderStride);
+        int bandMax = zone == TableTrigger.TableZone.InspectDesk ? openDeskSortingMax : closedDeskSortingMax;
+        int stampOrder = Mathf.Min(bandMax, baseOrder + stride + 1);
+
         for (int i = 0; i < cachedSpriteRenderers.Length; i++)
         {
-            if (cachedSpriteRenderers[i] != null)
-                cachedSpriteRenderers[i].sortingOrder = order;
+            SpriteRenderer sr = cachedSpriteRenderers[i];
+            if (sr == null) continue;
+
+            if (sr.GetComponentInParent<StampMark>() != null)
+            {
+                sr.sortingOrder = stampOrder;
+                continue;
+            }
+
+            // Convention: SpriteRenderer on the state root (closedState/openedState) is the "document base".
+            // TMP is expected at base+1; other sprites are "view" and render above TMP at base+stride.
+            bool isStateRoot =
+                (closedState != null && sr.gameObject == closedState) ||
+                (openedState != null && sr.gameObject == openedState);
+
+            sr.sortingOrder = isStateRoot ? baseOrder : baseOrder + stride;
+        }
+
+        if (syncWorldTmpSortingOrder)
+        {
+            TMP_Text[] tmps = GetComponentsInChildren<TMP_Text>(true);
+            for (int i = 0; i < tmps.Length; i++)
+            {
+                TMP_Text tmp = tmps[i];
+                if (tmp == null) continue;
+                if (tmp.GetComponentInParent<StampMark>() != null)
+                    continue;
+                Renderer r = tmp.GetComponent<Renderer>();
+                if (r != null)
+                    r.sortingOrder = baseOrder + 1;
+            }
+        }
+    }
+
+    private bool CanStartDragFromPoint(Vector2 worldPoint)
+    {
+        if (activeDragOwner != null) return false;
+
+        // Find topmost DocumentController at cursor by its current base sorting order.
+        int hitCount = Physics2D.OverlapPointNonAlloc(worldPoint, overlapPointHits);
+        DocumentController best = null;
+        int bestOrder = int.MinValue;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider2D c = overlapPointHits[i];
+            if (c == null) continue;
+            DocumentController dc = c.GetComponentInParent<DocumentController>();
+            if (dc == null) continue;
+
+            int order = dc.currentBaseSortingOrder;
+            if (best == null || order > bestOrder ||
+                (order == bestOrder && dc.touchOrder > best.touchOrder))
+            {
+                best = dc;
+                bestOrder = order;
+            }
+        }
+
+        return best == this;
+    }
+
+    /// <summary>Sorting orders reserved per document: base, TMP +1, view +stride, stamp +stride+1 (clamped to band max).</summary>
+    private int PackWidth()
+    {
+        int stride = Mathf.Max(2, documentOrderStride);
+        return stride + 2;
+    }
+
+    /// <summary>Call after adding/removing renderers under a document (e.g. StampMark) so sorting updates immediately.</summary>
+    public static void RebuildAllDocumentStacks() => RebuildAllStacks();
+
+    private static void RebuildAllStacks()
+    {
+        for (int i = s_instances.Count - 1; i >= 0; i--)
+        {
+            if (s_instances[i] == null)
+                s_instances.RemoveAt(i);
+        }
+
+        var inspect = new List<DocumentController>();
+        var closed = new List<DocumentController>();
+
+        for (int i = 0; i < s_instances.Count; i++)
+        {
+            DocumentController d = s_instances[i];
+            if (d == null || !d.isActiveAndEnabled) continue;
+            if (d.currentZone == TableTrigger.TableZone.InspectDesk)
+                inspect.Add(d);
+            else
+                closed.Add(d);
+        }
+
+        int oMin = 1, oMax = 14, cMin = 16, cMax = 31;
+        for (int i = 0; i < s_instances.Count; i++)
+        {
+            DocumentController r = s_instances[i];
+            if (r == null || !r.isActiveAndEnabled) continue;
+            oMin = r.openDeskSortingMin;
+            oMax = r.openDeskSortingMax;
+            cMin = r.closedDeskSortingMin;
+            cMax = r.closedDeskSortingMax;
+            break;
+        }
+
+        AssignBasesForZone(inspect, oMin, oMax);
+        AssignBasesForZone(closed, cMin, cMax);
+
+        for (int i = 0; i < s_instances.Count; i++)
+        {
+            DocumentController d = s_instances[i];
+            if (d == null || !d.isActiveAndEnabled) continue;
+            d.ApplySortingOrderForZone(d.currentZone);
+        }
+    }
+
+    private static void AssignBasesForZone(List<DocumentController> group, int rangeMin, int rangeMax)
+    {
+        if (group.Count == 0) return;
+
+        int rMin = Mathf.Min(rangeMin, rangeMax);
+        int rMax = Mathf.Max(rangeMin, rangeMax);
+
+        group.Sort((a, b) => b.touchOrder.CompareTo(a.touchOrder));
+
+        int stride0 = Mathf.Max(2, group[0].documentOrderStride);
+        // Highest layer used by a doc is base + stride + 1 (stamp), must stay within rMax.
+        int cursor = rMax - stride0 - 1;
+        for (int i = 0; i < group.Count; i++)
+        {
+            DocumentController d = group[i];
+            int stride = Mathf.Max(2, d.documentOrderStride);
+            int maxBase = rMax - stride - 1;
+            if (cursor > maxBase)
+                cursor = maxBase;
+            if (cursor < rMin)
+                cursor = rMin;
+            d.currentBaseSortingOrder = cursor;
+            if (i < group.Count - 1)
+                cursor -= d.PackWidth();
         }
     }
 }
