@@ -32,11 +32,13 @@ public class DocumentController : MonoBehaviour
     private float zoneOverlapProbeRadius = 0.14f;
 
     [Header("Rendering")]
+#pragma warning disable CS0414
     [SerializeField]
     private int sortingOrderInspectDesk = 5; // legacy (kept for compatibility; overridden by dynamic orders below)
 
     [SerializeField]
     private int sortingOrderClosedDesk = 100; // legacy (kept for compatibility; overridden by dynamic orders below)
+#pragma warning restore CS0414
 
     [Header("Dynamic order-in-layer (stacking)")]
     [Tooltip("If enabled: when you grab a document, it moves to the global front (highest sorting order).")]

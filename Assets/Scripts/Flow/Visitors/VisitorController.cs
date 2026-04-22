@@ -16,6 +16,15 @@ public class VisitorController : MonoBehaviour
     [SerializeField] private string triggerExitBack = "ExitBack";
     [Tooltip("Visitor leaves after approval (player said yes).")]
     [SerializeField] private string triggerExitForward = "ExitForward";
+     
+    [Header("Speech (scene UI)")]
+    [SerializeField] private VisitorSpeechUI speechUI;
+    [Tooltip("Lines shown after the visitor has walked in (in order, replacing each other in the same UI spot).")]
+    [SerializeField] private List<string> linesAfterEnter = new() { "Ваши документы.", "Цель прибытия?" };
+    [TextArea]
+    [SerializeField] private string lineAfterApproved = "Спасибо.";
+    [TextArea]
+    [SerializeField] private string lineAfterRejected = "Почему?!";
 
     [Header("Documents (after enter animation)")]
     [Tooltip("If true, SpawnDocuments runs only after OnEnterApproachAnimationFinished() (Animation Event) or fallback timeout.")]
@@ -55,6 +64,7 @@ public class VisitorController : MonoBehaviour
     public void OnEnterApproachAnimationFinished()
     {
         enterApproachFinished = true;
+        ShowSpeechSequence(linesAfterEnter);
     }
 
     /// <summary>
@@ -98,6 +108,9 @@ public class VisitorController : MonoBehaviour
                 yield return null;
             }
         }
+        // If we never got the animation event, still show the enter line once.
+        if (!enterApproachFinished)
+            ShowSpeechSequence(linesAfterEnter);
 
         SpawnDocuments(dayManager, documentPrefabs, documentSpawnPoint, rolledDocumentsCopy);
         documentSpawnWaitRoutine = null;
@@ -174,6 +187,8 @@ public class VisitorController : MonoBehaviour
         GameFlowController.OnStateChanged -= OnGameStateChanged;
         CancelInvoke(nameof(DestroySelf));
         StopDocumentSpawnRoutine();
+        if (speechUI != null)
+            speechUI.ClearSpawnedLines();
     }
 
     private void OnGameStateChanged(GameState prev, GameState next)
@@ -189,6 +204,8 @@ public class VisitorController : MonoBehaviour
                 else         ScoreManager.Instance.AddPenalty();
             }
 
+            // Use sequence so it works both in single-text mode and stack (prefab) mode.
+            ShowSpeechSequenceSingle(playerApproved ? lineAfterApproved : lineAfterRejected);
             PlayExitByApproval(playerApproved);
         }
 
@@ -207,10 +224,10 @@ public class VisitorController : MonoBehaviour
 
     private void PlayEnterInside()
     {
-        if (animator == null || string.IsNullOrEmpty(triggerEnterInside)) return;
-        animator.ResetTrigger(triggerExitBack);
-        animator.ResetTrigger(triggerExitForward);
-        animator.SetTrigger(triggerEnterInside);
+        if (animator == null) return;
+        TryResetTrigger(animator, triggerExitBack);
+        TryResetTrigger(animator, triggerExitForward);
+        TrySetTrigger(animator, triggerEnterInside);
     }
 
     private void PlayExitByApproval(bool playerApproved)
@@ -220,23 +237,69 @@ public class VisitorController : MonoBehaviour
 
         if (animator == null) return;
 
-        if (!string.IsNullOrEmpty(triggerEnterInside))
-            animator.ResetTrigger(triggerEnterInside);
+        TryResetTrigger(animator, triggerEnterInside);
 
         if (playerApproved)
         {
-            if (!string.IsNullOrEmpty(triggerExitBack))
-                animator.ResetTrigger(triggerExitBack);
-            if (!string.IsNullOrEmpty(triggerExitForward))
-                animator.SetTrigger(triggerExitForward);
+            TryResetTrigger(animator, triggerExitBack);
+            TrySetTrigger(animator, triggerExitForward);
         }
         else
         {
-            if (!string.IsNullOrEmpty(triggerExitForward))
-                animator.ResetTrigger(triggerExitForward);
-            if (!string.IsNullOrEmpty(triggerExitBack))
-                animator.SetTrigger(triggerExitBack);
+            TryResetTrigger(animator, triggerExitForward);
+            TrySetTrigger(animator, triggerExitBack);
         }
+    }
+
+    private void ShowSpeech(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return;
+        if (speechUI == null)
+            speechUI = FindFirstObjectByType<VisitorSpeechUI>();
+        if (speechUI != null)
+            speechUI.Show(line);
+    }
+
+    private void ShowSpeechSequence(IReadOnlyList<string> lines)
+    {
+        if (lines == null || lines.Count == 0) return;
+        if (speechUI == null)
+            speechUI = FindFirstObjectByType<VisitorSpeechUI>();
+        if (speechUI != null)
+            speechUI.PlaySequence(lines);
+    }
+
+    private void ShowSpeechSequenceSingle(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return;
+        if (speechUI == null)
+            speechUI = FindFirstObjectByType<VisitorSpeechUI>();
+        if (speechUI != null)
+            speechUI.PlaySequence(new[] { line });
+    }
+
+    private static bool HasTriggerParameter(Animator anim, string name)
+    {
+        if (anim == null || string.IsNullOrEmpty(name) || anim.runtimeAnimatorController == null) return false;
+        for (int i = 0; i < anim.parameters.Length; i++)
+        {
+            AnimatorControllerParameter p = anim.parameters[i];
+            if (p.type == AnimatorControllerParameterType.Trigger && p.name == name)
+                return true;
+        }
+        return false;
+    }
+
+    private static void TryResetTrigger(Animator anim, string name)
+    {
+        if (!HasTriggerParameter(anim, name)) return;
+        anim.ResetTrigger(name);
+    }
+
+    private static void TrySetTrigger(Animator anim, string name)
+    {
+        if (!HasTriggerParameter(anim, name)) return;
+        anim.SetTrigger(name);
     }
 }
 

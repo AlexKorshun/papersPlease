@@ -61,6 +61,13 @@ MonoBehaviour:
   triggerEnterInside: EnterInside
   triggerExitBack: ExitBack
   triggerExitForward: ExitForward
+  speechUI: {fileID: 0}
+  linesAfterEnter:
+  - "\u0412\u0430\u0448\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u044B."
+  - "\u0426\u0435\u043B\u044C \u043F\u0440\u0438\u0431\u044B\u0442\u0438\u044F?"
+  - "\u0412\u0438\u0437\u0438\u0442"
+  lineAfterApproved: "\u0421\u043F\u0430\u0441\u0438\u0431\u043E."
+  lineAfterRejected: "\u041F\u043E\u0447\u0435\u043C\u0443?!"
   waitForEnterAnimationBeforeDocuments: 1
   enterAnimationFallbackSeconds: 10
   destroyDelayAfterNextVisitor: 2
