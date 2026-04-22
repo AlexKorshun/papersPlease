@@ -26,6 +26,11 @@ public class DayDateUI : MonoBehaviour
         Refresh();
     }
 
+    private void Start()
+    {
+        Refresh();
+    }
+
     public void Refresh()
     {
         if (text == null) return;

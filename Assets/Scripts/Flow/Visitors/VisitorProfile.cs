@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 
+public enum ScannerEmotion { Calm, Anxiety, Fear }
+
 [Serializable]
 public struct VisitorProfile
 {
@@ -11,6 +13,7 @@ public struct VisitorProfile
     public string BirthPlace;
     public Sprite Photo;
     public bool ShouldBeAllowed;
+    public ScannerEmotion EmotionalState;
 }
 
 public static class VisitorProfileGenerator
@@ -76,7 +79,7 @@ public static class VisitorProfileGenerator
         string valid = todayDate;
         if (forged)
         {
-            int delta = (Mathf.Abs(x) % 2 == 0) ? -1 : 1;
+            int delta = (Mathf.Abs(x) % 2 == 0) ? -1 : -2;
             if (System.DateTime.TryParseExact(todayDate, "dd.MM.yyyy", null,
                     System.Globalization.DateTimeStyles.None, out var dt))
             {
@@ -90,6 +93,19 @@ public static class VisitorProfileGenerator
             LastName = profile.LastName,
             ValidDate = valid,
         };
+    }
+
+    // Legit:  65% Calm, 25% Anxiety, 10% Fear
+    // Forged: 20% Calm, 50% Anxiety, 30% Fear
+    public static ScannerEmotion GenerateEmotionalState(in VisitorProfile profile, bool hasForgedDoc, int visitorIndex)
+    {
+        int x = Mix(profile.PersonId.GetHashCode() ^ unchecked(visitorIndex * (int)2246822519u));
+        float t = (Mathf.Abs(x) % 100) / 100f;
+
+        if (!hasForgedDoc)
+            return t < 0.65f ? ScannerEmotion.Calm : t < 0.90f ? ScannerEmotion.Anxiety : ScannerEmotion.Fear;
+        else
+            return t < 0.20f ? ScannerEmotion.Calm : t < 0.70f ? ScannerEmotion.Anxiety : ScannerEmotion.Fear;
     }
 
     private static int Mix(int x)

@@ -11,7 +11,22 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3cd6143e77cbce449e770d682d0b70d, type: 3}
   m_Name: Person_2
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   id: persona2
   displayName: Person
   prefab: {fileID: 65857296744638291, guid: c65400b911aa7c9438f84ddc8717bc24, type: 3}
+  enterDialoguesLegit:
+  - lines:
+    - "Документы. Я из {birthplace}."
+  - lines:
+    - "Быстрее, я опаздываю."
+    - "Из {birthplace}. Там всё оформили."
+  - lines:
+    - "Вот. Из {birthplace}, всё как положено."
+  enterDialoguesForged:
+  - lines:
+    - "Документы в порядке. Из {birthplace}. Можем закончить?"
+  - lines:
+    - "Я часто езжу через этот пост. Из {birthplace}."
+  - lines:
+    - "Всё чисто. Я из {birthplace}, можете проверять."

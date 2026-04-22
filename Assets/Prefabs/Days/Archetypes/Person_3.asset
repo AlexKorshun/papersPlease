@@ -11,6 +11,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3cd6143e77cbce449e770d682d0b70d, type: 3}
   m_Name: Person_3
-  m_EditorClassIdentifier: 
-  id: person_id
+  m_EditorClassIdentifier:
+  id: person3
   displayName: Person
+  prefab: {fileID: 0}
+  enterDialoguesLegit:
+  - lines:
+    - "Здравствуйте."
+    - "Я приехала из {birthplace} навестить семью. Вот документы."
+  - lines:
+    - "Добрый день! Первый раз здесь."
+    - "Я из {birthplace}. Надеюсь, всё правильно оформила."
+  - lines:
+    - "Вот, пожалуйста."
+    - "Из {birthplace}. Мне сказали, что нужен пропуск — он тоже здесь."
+  enterDialoguesForged:
+  - lines:
+    - "Здравствуйте. Я просто в гости."
+    - "Из {birthplace} я. Документы? Да, секунду."
+  - lines:
+    - "Добрый день. Всё в порядке?"
+    - "Я из {birthplace}, там всё выдали."
+  - lines:
+    - "Вот мои документы."
+    - "Из {birthplace}. Я очень спешу, у меня поезд."

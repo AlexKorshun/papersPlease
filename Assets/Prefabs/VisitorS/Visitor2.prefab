@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a784a53c8ed68143abec8da68988650, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  archetype: {fileID: 11400000, guid: 6e0e8536033dd5e4196b0505508ca1d1, type: 2}
+  archetype: {fileID: 11400000, guid: 97c1ee4d6bbecd940a503368c84b26df, type: 2}
   documents:
   - {fileID: 0}
   profile:
@@ -57,15 +57,22 @@ MonoBehaviour:
     BirthPlace: 
     Photo: {fileID: 0}
     ShouldBeAllowed: 0
+    EmotionalState: 0
   animator: {fileID: -2109599062827472806}
   triggerEnterInside: EnterInside
   triggerExitBack: ExitBack
   triggerExitForward: ExitForward
   speechUI: {fileID: 0}
-  linesAfterEnter:
-  - "\u0412\u0430\u0448\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u044B."
-  - "\u0426\u0435\u043B\u044C \u043F\u0440\u0438\u0431\u044B\u0442\u0438\u044F?"
-  - "\u0412\u0438\u0437\u0438\u0442"
+  enterDialoguesLegit:
+  - lines:
+    - "\u0412\u0430\u0448\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u044B."
+    - "\u0426\u0435\u043B\u044C \u043F\u0440\u0438\u0431\u044B\u0442\u0438\u044F?"
+    - "\u0420\u0430\u0431\u043E\u0442\u0430"
+  enterDialoguesForged:
+  - lines:
+    - "\u0412\u043E\u0442 \u043C\u043E\u0438 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u044B..."
+    - "\u041E\u0442\u043A\u0443\u0434\u0430 \u0432\u044B \u0440\u043E\u0434\u043E\u043C?"
+    - "\u042F \u0438\u0437 {birthplace}"
   lineAfterApproved: "\u0421\u043F\u0430\u0441\u0438\u0431\u043E."
   lineAfterRejected: "\u041F\u043E\u0447\u0435\u043C\u0443?!"
   waitForEnterAnimationBeforeDocuments: 1

@@ -32,6 +32,12 @@ public class GameFlowController : MonoBehaviour
 
     public GameState CurrentState { get; private set; }
     public bool LastDecisionApproved { get; private set; }
+    public VisitorController ActiveVisitor => activeVisitor;
+
+    public void SetActiveVisitor(VisitorController visitor)
+    {
+        activeVisitor = visitor;
+    }
 
     private float stateTimer;
     private bool decisionApproved;
@@ -155,9 +161,8 @@ public class GameFlowController : MonoBehaviour
 
         if (visitorSpawner != null)
         {
-            // Preferred: visitor + documents come from VisitorSpawner/DayManager rules.
             activeVisitor = visitorSpawner.SpawnVisitorForSession();
-            return;
+            return; // null означает конец дня — сцена сменится через DayFlowController
         }
 
         // Fallback: legacy single-document spawn (useful for quick prototyping).

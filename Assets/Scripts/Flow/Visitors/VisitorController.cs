@@ -2,6 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class DialogueVariant
+{
+    public List<string> lines = new();
+}
+
 public class VisitorController : MonoBehaviour
 {
     [SerializeField] private PersonArchetypeSO archetype;
@@ -16,11 +22,19 @@ public class VisitorController : MonoBehaviour
     [SerializeField] private string triggerExitBack = "ExitBack";
     [Tooltip("Visitor leaves after approval (player said yes).")]
     [SerializeField] private string triggerExitForward = "ExitForward";
-     
+
     [Header("Speech (scene UI)")]
     [SerializeField] private VisitorSpeechUI speechUI;
-    [Tooltip("Lines shown after the visitor has walked in (in order, replacing each other in the same UI spot).")]
-    [SerializeField] private List<string> linesAfterEnter = new() { "Ваши документы.", "Цель прибытия?" };
+    [Tooltip("Played when visitor has valid documents. One variant is picked at random.")]
+    [SerializeField] private List<DialogueVariant> enterDialoguesLegit = new()
+    {
+        new DialogueVariant { lines = new() { "Ваши документы.", "Цель прибытия?" } }
+    };
+    [Tooltip("Played when visitor has forged documents. Falls back to Legit list if empty.")]
+    [SerializeField] private List<DialogueVariant> enterDialoguesForged = new()
+    {
+        new DialogueVariant { lines = new() { "Д-документы? Да, конечно..." } }
+    };
     [TextArea]
     [SerializeField] private string lineAfterApproved = "Спасибо.";
     [TextArea]
@@ -64,7 +78,7 @@ public class VisitorController : MonoBehaviour
     public void OnEnterApproachAnimationFinished()
     {
         enterApproachFinished = true;
-        ShowSpeechSequence(linesAfterEnter);
+        ShowRandomEnterDialogue();
     }
 
     /// <summary>
@@ -110,7 +124,7 @@ public class VisitorController : MonoBehaviour
         }
         // If we never got the animation event, still show the enter line once.
         if (!enterApproachFinished)
-            ShowSpeechSequence(linesAfterEnter);
+            ShowRandomEnterDialogue();
 
         SpawnDocuments(dayManager, documentPrefabs, documentSpawnPoint, rolledDocumentsCopy);
         documentSpawnWaitRoutine = null;
@@ -173,6 +187,11 @@ public class VisitorController : MonoBehaviour
     public void SetShouldBeAllowed(bool value)
     {
         profile.ShouldBeAllowed = value;
+    }
+
+    public void SetEmotionalState(ScannerEmotion emotion)
+    {
+        profile.EmotionalState = emotion;
     }
 
     public IReadOnlyList<MonoBehaviour> DocumentComponents => documents;
@@ -249,6 +268,38 @@ public class VisitorController : MonoBehaviour
             TryResetTrigger(animator, triggerExitForward);
             TrySetTrigger(animator, triggerExitBack);
         }
+    }
+
+    private void ShowRandomEnterDialogue()
+    {
+        bool forged = !profile.ShouldBeAllowed;
+
+        // Архетип имеет приоритет над локальными списками префаба
+        IReadOnlyList<DialogueVariant> architypeForged = archetype?.EnterDialoguesForged;
+        IReadOnlyList<DialogueVariant> archetypeLegit  = archetype?.EnterDialoguesLegit;
+
+        IReadOnlyList<DialogueVariant> pool =
+            forged && architypeForged?.Count > 0 ? architypeForged :
+            !forged && archetypeLegit?.Count  > 0 ? archetypeLegit  :
+            forged && enterDialoguesForged?.Count > 0 ? enterDialoguesForged :
+            (IReadOnlyList<DialogueVariant>)enterDialoguesLegit;
+
+        if (pool == null || pool.Count == 0) return;
+
+        List<string> raw = pool[Random.Range(0, pool.Count)].lines;
+        List<string> resolved = new(raw.Count);
+        foreach (string line in raw)
+            resolved.Add(ResolvePlaceholders(line));
+
+        ShowSpeechSequence(resolved);
+    }
+
+    private string ResolvePlaceholders(string line)
+    {
+        return line
+            .Replace("{birthplace}", profile.BirthPlace)
+            .Replace("{firstname}", profile.FirstName)
+            .Replace("{lastname}", profile.LastName);
     }
 
     private void ShowSpeech(string line)

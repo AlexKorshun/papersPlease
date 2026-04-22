@@ -42,6 +42,9 @@ public class DayManager : MonoBehaviour
 
     private void Awake()
     {
+        if (SceneFlowManager.Instance != null)
+            currentDayNumber = SceneFlowManager.Instance.CurrentDay;
+
         activeConfig = FindConfig(currentDayNumber);
         if (activeConfig == null && dayConfigs.Count > 0)
             activeConfig = dayConfigs[0];

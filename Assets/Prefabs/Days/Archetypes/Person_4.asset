@@ -11,6 +11,27 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3cd6143e77cbce449e770d682d0b70d, type: 3}
   m_Name: Person_4
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   id: person_id
   displayName: Person
+  prefab: {fileID: 0}
+  enterDialoguesLegit:
+  - lines:
+    - "Добрый вечер."
+    - "Я из {birthplace}. Документы в порядке, езжу регулярно."
+  - lines:
+    - "Прошу прощения за ожидание."
+    - "Из {birthplace}. Вот все бумаги."
+  - lines:
+    - "Документы готовы."
+    - "Из {birthplace}. Командировка."
+  enterDialoguesForged:
+  - lines:
+    - "Добрый вечер."
+    - "Из {birthplace}. Надеюсь, не задержите надолго."
+  - lines:
+    - "Документы в порядке, я проверял."
+    - "Я из {birthplace}. Обычная поездка."
+  - lines:
+    - "Пожалуйста."
+    - "Из {birthplace}. Там всё есть, можете смотреть."

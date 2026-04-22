@@ -39,6 +39,12 @@ public class VisitorSpawner : MonoBehaviour
     /// </summary>
     public VisitorController SpawnVisitorForSession()
     {
+        if (sessionVisitorIndex >= visitorsPerDay)
+        {
+            OnDayEnded?.Invoke();
+            return null;
+        }
+
         if (dayManager == null || visitorPrefab == null) return null;
 
         var docsBuffer = new List<DayManager.RolledDocument>(8);
@@ -53,6 +59,7 @@ public class VisitorSpawner : MonoBehaviour
 
         bool hasForgedDoc = docsBuffer.Exists(d => d.IsForged);
         visitor.SetShouldBeAllowed(!hasForgedDoc);
+        visitor.SetEmotionalState(VisitorProfileGenerator.GenerateEmotionalState(visitor.Profile, hasForgedDoc, i));
 
         visitor.BeginSpawnDocumentsAfterEnter(dayManager, documentPrefabs, documentSpawnPoint, CopyRolledDocuments(docsBuffer));
 
@@ -94,6 +101,9 @@ public class VisitorSpawner : MonoBehaviour
 
             bool hasForgedDoc = docsBuffer.Exists(d => d.IsForged);
             visitor.SetShouldBeAllowed(!hasForgedDoc);
+            visitor.SetEmotionalState(VisitorProfileGenerator.GenerateEmotionalState(visitor.Profile, hasForgedDoc, i));
+
+            GameFlowController.Instance?.SetActiveVisitor(visitor);
 
             visitor.BeginSpawnDocumentsAfterEnter(dayManager, documentPrefabs, documentSpawnPoint, CopyRolledDocuments(docsBuffer));
 

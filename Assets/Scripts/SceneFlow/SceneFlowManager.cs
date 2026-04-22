@@ -28,6 +28,12 @@ public class SceneFlowManager : MonoBehaviour
     public void StartGame()
     {
         CurrentDay = 1;
+        TransitionTo(SceneFlowState.Intro);
+    }
+
+    // Call from "Продолжить" button in Intro scene
+    public void StartFirstDay()
+    {
         TransitionTo(SceneFlowState.Game);
     }
 
@@ -53,6 +59,7 @@ public class SceneFlowManager : MonoBehaviour
         switch (next)
         {
             case SceneFlowState.MainMenu: SceneManager.LoadScene(SceneIndex.MainMenu); break;
+            case SceneFlowState.Intro:    SceneManager.LoadScene(SceneIndex.Intro);    break;
             case SceneFlowState.Game:     SceneManager.LoadScene(SceneIndex.Game);     break;
             case SceneFlowState.EndOfDay: SceneManager.LoadScene(SceneIndex.EndOfDay); break;
         }

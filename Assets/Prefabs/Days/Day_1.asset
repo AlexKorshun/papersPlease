@@ -29,3 +29,17 @@ MonoBehaviour:
       forgeryChance: 0.2
     - documentType: {fileID: 11400000, guid: 471094e3344ca064fb43500d03991959, type: 2}
       forgeryChance: 0.2
+  - archetype: {fileID: 11400000, guid: 0b9c2db7688e4074faeb3ec3b706e1d3, type: 2}
+    spawnWeight: 0.5
+    requiredDocuments:
+    - documentType: {fileID: 11400000, guid: 626c52b037f005742b937042bcdb14b4, type: 2}
+      forgeryChance: 0.2
+    - documentType: {fileID: 11400000, guid: 471094e3344ca064fb43500d03991959, type: 2}
+      forgeryChance: 0.2
+  - archetype: {fileID: 11400000, guid: 3b4c014999ea79043b4ce57eeaec0f41, type: 2}
+    spawnWeight: 0.5
+    requiredDocuments:
+    - documentType: {fileID: 11400000, guid: 626c52b037f005742b937042bcdb14b4, type: 2}
+      forgeryChance: 0.2
+    - documentType: {fileID: 11400000, guid: 471094e3344ca064fb43500d03991959, type: 2}
+      forgeryChance: 0.2

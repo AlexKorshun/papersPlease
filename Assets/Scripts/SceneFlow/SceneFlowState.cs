@@ -1,6 +1,7 @@
 public enum SceneFlowState
 {
-    MainMenu = 0,
-    Game     = 1,
-    EndOfDay = 2,
+    MainMenu  = 0,
+    Intro     = 1,
+    Game      = 2,
+    EndOfDay  = 3,
 }

@@ -26,5 +26,14 @@ public class EndOfDayUI : MonoBehaviour
         ScoreManager.Instance?.Reset();
         SceneFlowManager.Instance.StartNextDay();
     }
+
+    public void OnQuitClicked()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
 }
 
