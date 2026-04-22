@@ -170,10 +170,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
@@ -259,7 +259,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 539.3525, y: 264.8908}
+  m_SizeDelta: {x: 1293.5961, y: 627.2012}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &191843013
 MonoBehaviour:
@@ -308,8 +308,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 15
-  m_fontSizeBase: 15
+  m_fontSize: 36
+  m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -392,7 +392,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -226.93051}
+  m_AnchoredPosition: {x: 0, y: -443}
   m_SizeDelta: {x: 553.3031, y: 159.861}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &579574661
@@ -442,8 +442,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 13
-  m_fontSizeBase: 13
+  m_fontSize: 20
+  m_fontSizeBase: 20
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -686,11 +686,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 86595457286436991, guid: baa389b48d87a9e45ad0ffb91f6430d3, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 868.402
+      value: 2439.5527
       objectReference: {fileID: 0}
     - target: {fileID: 86595457286436991, guid: baa389b48d87a9e45ad0ffb91f6430d3, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 428.1069
+      value: 1334.6704
       objectReference: {fileID: 0}
     - target: {fileID: 86595457286436991, guid: baa389b48d87a9e45ad0ffb91f6430d3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -722,11 +722,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 86595457286436991, guid: baa389b48d87a9e45ad0ffb91f6430d3, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0
+      value: -7.9755
       objectReference: {fileID: 0}
     - target: {fileID: 86595457286436991, guid: baa389b48d87a9e45ad0ffb91f6430d3, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.7617
+      value: -5.6488
       objectReference: {fileID: 0}
     - target: {fileID: 86595457286436991, guid: baa389b48d87a9e45ad0ffb91f6430d3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -816,8 +816,8 @@ MonoBehaviour:
     \u0430 \u043A\u043E\u0433\u043E \u043D\u0435\u0442.\n\n\u0411\u0443\u0434\u044C\u0442\u0435
     \u0432\u043D\u0438\u043C\u0430\u0442\u0435\u043B\u044C\u043D\u044B. \u041E\u0448\u0438\u0431\u043A\u0438
     \u0441\u0442\u043E\u044F\u0442 \u0434\u043E\u0440\u043E\u0433\u043E."
-  typewriterSpeed: 0.04
-  minWaitBeforeClick: 1.5
+  typewriterSpeed: 0.06
+  minWaitBeforeClick: 5
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
